@@ -1,91 +1,13 @@
-# Shopping Cart REST API
-A repository containing example of REST API in python with  flask  and  mongoDB, for CRUD operations on a cart.
-
-In this repository, I will  explain my work on creating REST API in python with the help of flask, MongoDB to perform CRUD operations on shopping cart.<br>
-Note : Video demo can be found at [Shopping cart REST API](https://youtu.be/uwsyNJvAzMg)
-
-# Problem Statement
-To create a shopping cart REST API(Use Python/Mongodb) that handles CRUD operations for a specific user like create cart, get items, add items and remove items.
-
-# Solution
-## Tools  Required
-- MongoDB : To create and maintain database
-- Postman App : To make requests to API from client side
-- Python(3.9.6) : To create the  API
-
-## Download and Install Required  tools
-- MongoDB Community Version (5.0.1) : https://www.mongodb.com/try/download/community
-- Postman : https://www.postman.com/downloads/
-- Python (3.9.6) : https://www.python.org/downloads/
-
-## Required  packages for python
-- flask : To work with flask framework in python
-- pymongo : To work with MongoDB database from python
-
-##### Command to  install required packages
-- All  packages at once : pip install -r requirements.txt
-- Individual packages : pip install <package_name> 
-  - <package_name> : flask, py_mongo
-
-## Operations that can be performed with API
-- Create and/or Add items to  cart
-- Get items in cart
-- Update name for  item in  cart
-- Update price for item in cart
-- Update quantity for  item in cart
-- Remove specific item from cart
-- Empty cart
-
-## Explaination about  different operations
-- Create and/or  Add items to  cart :
-  - By performing  this  operation, if the  collection/table doesn't  exist in MongoDB,  than it will  create the collection  and add item to  the  cart,  else if the collection already exists, then  it will add item to  existig cart.
-  - EndPoint : localhost:5000/carts
-  - Methods : POST
-  - form_data : "name", "price",  "quantity"
-- Get items in cart :
-  - This operation allow  you to  get all the items present in the cart
-  - EndPoint : localhost:5000/carts
-  - Methods : GET
-- Update name of item in cart
-  - This  operation allow you to  update name of item present in the cart by providing item id.
-  - EndPoint : localhost:5000/carts/name/{item_id}
-  - Methods : PUT
-  - form_data : "name"
-- Update price of item in cart
-  - This  operation allow you to  update price of item present in the cart by providing item id.
-  - EndPoint : localhost:5000/carts/price/{item_id}
-  - Methods : PUT
-  - form_data : "price"
-- Update quantity of item in cart
-  - This  operation allow you to  update quantity of item present in the cart by providing item id.
-  - EndPoint : localhost:5000/carts/quantity/{item_id}
-  - Methods : PUT
-  - form_data : "quantity"
-- Remove specific item from cart
-  - This operation  allows you to  remove specific item from cart by providing its item id.
-  - EndPoint : localhost:5000/carts/{item_id}
-  - Methods : DELETE
-- Empty Cart
-  - This operation  allows you to  empty your cart by  removing all  items in the cart.
-  - EndPoint : localhost:5000/carts
-  - Methods : DELETE
-
-## Code with explaination
-- Importing requied packages
-```python
 from flask import Flask, Response, request
 import json
 from bson.objectid import  ObjectId
 import pymongo
-```
-- Starting the server
-```python
+
 app = Flask(__name__)
-if (__name__ == "__main__"):
-    app.run(port=5000, debug=True)
-```
-- Connecting with MongoDB
-```python
+
+### always do the connection in try except
+###########################################
+# Connecting  with MongoDB database
 try:
     mongo = pymongo.MongoClient(
         host="localhost",
@@ -96,17 +18,23 @@ try:
     db = mongo.miskaa    
 except:
     print("ERROR - Cannot connect  to  database")
-```
-- Adding to  the cart
-```python
+
+
+
+
+#####################################
+# Create the cart
 @app.route("/carts", methods=["POST"])
 def create_cart():
     try:
+        #item = {"name":"A", "price":"20"}
         item = {"name":request.form["name"],
                 "price":request.form["price"],
                 "quantity":request.form["quantity"]}
         dbResponse = db.carts.insert_one(item)
         print(dbResponse.inserted_id)
+        #for attr in dir(dbResponse):
+        #    print(attr)
         return Response(
             response=json.dumps(
                 {"message":"item added to cart",
@@ -120,9 +48,10 @@ def create_cart():
         print("*****************")
         print(ex)
         print("*****************")
-```
-- Viewing the cart
-```python
+
+
+#####################################
+# Read from cart
 @app.route("/carts", methods=["GET"])
 def show_items_in_cart():
     try:
@@ -142,9 +71,13 @@ def show_items_in_cart():
             status=500,
             mimetype="application/json"
         )
-```
-- Updating name of  item from cart
-```python
+
+
+
+#####################################
+# Update item in cart
+
+    ## Update name of item in cart
 @app.route("/carts/name/<id>", methods=["PUT"])
 def update_item_name(id):
     try:
@@ -152,6 +85,8 @@ def update_item_name(id):
             {"_id":ObjectId(id)},
             {"$set":{"name":request.form["name"]}}
         )
+        #for attr in dir(dbResponse):
+        #    print(f"*******{attr}************")
         if (dbResponse.modified_count > 0):
             return Response(
                 response=json.dumps({"message":"Item name updated"}),
@@ -173,9 +108,9 @@ def update_item_name(id):
             status=500,
             mimetype="application/json"
         )
-```
-- Updating  price of item from cart
-```python
+
+
+    ## Update price of item in cart
 @app.route("/carts/price/<id>", methods=["PUT"])
 def update_item_price(id):
     try:
@@ -183,6 +118,8 @@ def update_item_price(id):
             {"_id":ObjectId(id)},
             {"$set":{"price":request.form["price"]}}
         )
+        #for attr in dir(dbResponse):
+        #    print(f"*******{attr}************")
         if (dbResponse.modified_count > 0):
             return Response(
                 response=json.dumps({"message":"Item price updated"}),
@@ -204,9 +141,8 @@ def update_item_price(id):
             status=500,
             mimetype="application/json"
         )
-```
-- Updating quantity of item from cart
-```python
+
+    ## Update quantity of item in cart
 @app.route("/carts/quantity/<id>", methods=["PUT"])
 def update_item_quantity(id):
     try:
@@ -214,6 +150,8 @@ def update_item_quantity(id):
             {"_id":ObjectId(id)},
             {"$set":{"quantity":request.form["quantity"]}}
         )
+        #for attr in dir(dbResponse):
+        #    print(f"*******{attr}************")
         if (dbResponse.modified_count > 0):
             return Response(
                 response=json.dumps({"message":"Item quantity updated"}),
@@ -235,15 +173,18 @@ def update_item_quantity(id):
             status=500,
             mimetype="application/json"
         )
-```
-- Deleting item from cart
-```python
+
+
+#####################################
+# Delete  item from cart
 @app.route("/carts/<id>", methods=["DELETE"])
 def delete_item(id):
     try:
         dbResponse = db.carts.delete_one(
             {"_id":ObjectId(id)}
         )
+        #for attr in dir(dbResponse):
+        #    print(attr)
         if (dbResponse.deleted_count > 0):
             return Response(
                 response=json.dumps(
@@ -269,9 +210,10 @@ def delete_item(id):
             status=500,
             mimetype="application/json"
         )
-```
-- Emptying the cart
-```python
+
+
+#####################################
+# Delete cart
 @app.route("/carts", methods=["DELETE"])
 def delete_cart():
     try:
@@ -300,6 +242,8 @@ def delete_cart():
             status=500,
             mimetype="application/json"
         )
-```
-Author : Sushil Kumar<br>
-Contact : sushilkumar168141@gmail.com
+   
+
+#####################################
+if (__name__ == "__main__"):
+    app.run(port=5000, debug=True)
